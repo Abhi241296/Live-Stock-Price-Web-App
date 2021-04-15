@@ -1,0 +1,95 @@
+<html>
+
+  <head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>Stock Market Live Ticker Web App</title>
+    <script type="text/javascript">
+        var stock = [];
+        var price = [];
+        var input = [];
+        console.log(input);
+
+        function getStockPrice() {
+        var b = document.getElementById("stockname").value;
+        if (b.length !== 0) {
+            var r = input.includes(b);
+
+            if (r == false) {
+            input.push(b);
+            }
+        }
+        for (var i = 0; i < input.length; i++) {
+            var u = encodeURIComponent(input[i])
+            axios.get('https://cloud.iexapis.com/stable/stock/' + u + '/quote?token=pk_fbef7902db9d41789c1063ccb4b4eabf')
+            .then(function(response) {
+                console.log(response.data.symbol);
+                console.log(response.data.latestPrice);
+                var p = stock.includes(response.data.symbol);
+                if (p == true) {
+                var q = stock.indexOf(response.data.symbol);
+                price[q] = response.data.latestPrice;
+                } else {
+                stock.push(response.data.symbol);
+                price.push(response.data.latestPrice);
+                }
+                drawChart();
+            })
+            .catch(error => console.error(error));
+        }
+        setTimeout(getStockPrice, 5000);
+        }
+        google.charts.load('current', {
+        'packages': ['corechart', 'bar']
+        });
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Stock');
+        data.addColumn('number', 'Price');
+        for (var i = 0; i < stock.length; i++) {
+            data.addRow([stock[i], price[i]]);
+        }
+        var options = {
+            'title': 'Stock Price',
+            height: 400,
+            hAxis: {
+            title: 'Price'
+            },
+            vAxis: {
+            title: 'Ticker Name'
+            },
+            colors: ['green'],
+            pointSize: 10
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('graph'));
+        chart.draw(data, options);
+        }
+    </script>
+    <style type="text/css">
+        .center {
+            margin: auto;
+            width: 70%;
+            bottom: 20%;
+            border: 3px solid black;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+
+  <body style="background-image: linear-gradient( 135deg, #2AFADF 10%, #4C83FF 100%);">
+    <br>
+    <br>
+    <br>
+    <div class="center" style="padding-top: 15px; padding-bottom: 15px; text-align: center">
+      <label><strong>Stock ticker: </strong></label>
+      <input id="stockname" type="text" maxlength=9>
+      <button type="submit" onClick="getStockPrice()">Add <i class="fa fa-bar-chart"></i></button><small> Ex: AAPL, IBM</small>
+    </div>
+    <div id="graph" class="center"></div>
+  </body>
+
+</html>
